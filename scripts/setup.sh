@@ -238,19 +238,19 @@ EOF
     log_success "Configuration saved to $DOCKER_DIR/.env"
 }
 
-# Build and start containers
+# Pull and start containers
 start_containers() {
-    log_info "Building Docker images (this may take a few minutes)..."
+    log_info "Pulling Docker images..."
     echo ""
 
     cd "$DOCKER_DIR"
 
     if [[ "$ENABLE_MONITORING" =~ ^[Yy]$ ]]; then
-        $COMPOSE_CMD --profile monitoring build
+        $COMPOSE_CMD --profile monitoring pull
         log_info "Starting containers with monitoring stack..."
         $COMPOSE_CMD --profile monitoring up -d
     else
-        $COMPOSE_CMD build
+        $COMPOSE_CMD pull
         log_info "Starting containers..."
         $COMPOSE_CMD up -d
     fi

@@ -15,8 +15,8 @@ Production-ready Docker deployment for MinnowVPN Server with automatic HTTPS, mo
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourorg/minnowvpn.git
-cd minnowvpn/installer/docker
+git clone https://github.com/minnowvpn/minnowvpn.git
+cd minnowvpn
 
 # Run the setup wizard
 ./scripts/setup.sh
@@ -128,8 +128,8 @@ docker compose ps
 # Stop services
 docker compose down
 
-# Rebuild after code changes
-docker compose build --no-cache
+# Update to latest images
+docker compose pull
 docker compose up -d
 ```
 
@@ -252,9 +252,6 @@ Watchtower automatically updates containers daily at 4am UTC.
 # Pull latest images
 docker compose pull
 
-# Rebuild custom images
-docker compose build --no-cache
-
 # Restart with new images
 docker compose up -d
 ```
@@ -270,36 +267,8 @@ docker compose up -d
 ./scripts/backup.sh
 git pull
 docker compose down
-docker compose build --no-cache
+docker compose pull
 docker compose up -d
-```
-
-## Development
-
-### Local Development
-
-```bash
-# Use docker-compose.override.yml for local settings
-cat > docker-compose.override.yml << EOF
-version: "3.9"
-services:
-  caddy:
-    ports:
-      - "8080:80"
-      - "8443:443"
-EOF
-
-docker compose up -d
-```
-
-### Building Single Architecture
-
-```bash
-# AMD64 only
-docker compose build --build-arg TARGETPLATFORM=linux/amd64
-
-# ARM64 only
-docker compose build --build-arg TARGETPLATFORM=linux/arm64
 ```
 
 ## License

@@ -92,12 +92,6 @@ services:
   # Dart REST API Server
   # ===========================================================================
   dart-server:
-    build:
-      context: ../..
-      dockerfile: installer/docker/Dockerfile.dart-server
-      platforms:
-        - linux/amd64
-        - linux/arm64
     image: minnowvpn/api:latest
     container_name: minnowvpn-api
     secrets:
@@ -145,12 +139,6 @@ services:
   # Flutter Web Management Console
   # ===========================================================================
   flutter-console:
-    build:
-      context: ../..
-      dockerfile: installer/docker/Dockerfile.flutter-console
-      platforms:
-        - linux/amd64
-        - linux/arm64
     image: minnowvpn/console:latest
     container_name: minnowvpn-console
     networks:
@@ -173,12 +161,6 @@ services:
   # Rust WireGuard VPN Daemon
   # ===========================================================================
   vpn-daemon:
-    build:
-      context: ../..
-      dockerfile: installer/docker/Dockerfile.vpn-daemon
-      platforms:
-        - linux/amd64
-        - linux/arm64
     image: minnowvpn/vpn:latest
     container_name: minnowvpn-vpn
     # Host networking required for TUN device and routing table access
