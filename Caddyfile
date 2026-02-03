@@ -159,25 +159,12 @@
 }
 
 # =============================================================================
-# Localhost Health Check (for container health checks)
+# HTTP to HTTPS redirect (implicit in Caddy, but explicit for clarity)
 # =============================================================================
-:80 {
-    @localhost {
-        host localhost
-    }
-    handle @localhost {
-        handle /health {
-            respond "OK" 200
-        }
-        respond "Not Found" 404
-    }
-    # All other requests redirect to HTTPS
-    handle {
-        redir https://{$DOMAIN}{uri} permanent
-    }
+http://{$DOMAIN} {
+    redir https://{$DOMAIN}{uri} permanent
 }
 
-# Grafana HTTP to HTTPS redirect
 http://{$GRAFANA_DOMAIN:grafana.localhost} {
     redir https://{$GRAFANA_DOMAIN:grafana.localhost}{uri} permanent
 }

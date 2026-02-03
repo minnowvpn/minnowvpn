@@ -1,33 +1,40 @@
 # =============================================================================
-# MinnowVPN - Git Ignore
+# MinnowVPN Docker - Git Ignore
 # =============================================================================
 
-# Secrets (auto-generated during setup - NEVER commit)
+# Secrets (NEVER commit these!)
 secrets/
+*.txt
 
-# Environment configuration (user-specific)
+# Environment file (contains server-specific config)
 .env
+
+# Local development overrides
+docker-compose.override.yml
 
 # Backups
 backups/
+*.tar.gz
 
-# Docker volume data
-*_data/
-
-# Logs
+# Log files
 *.log
 logs/
 
-# macOS
-.DS_Store
-
-# Editor
-*.swp
-*.swo
-*~
-.idea/
-.vscode/
+# Caddy data (certificates are server-specific)
+caddy_data/
 
 # Temporary files
 *.tmp
 *.temp
+.DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+build/

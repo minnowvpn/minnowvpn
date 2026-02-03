@@ -5,12 +5,12 @@ version: "3.9"
 # =============================================================================
 #
 # Usage:
-#   ./install.sh                              # First-time setup wizard
-#   docker compose up -d                      # Start core services
-#   docker compose --profile monitoring up -d # Start with Prometheus/Grafana
-#   docker compose logs -f                    # View logs
-#   docker compose down                       # Stop services
-#   docker compose down -v                    # Stop and remove volumes
+#   ./scripts/setup.sh                    # First-time setup wizard
+#   docker compose up -d                  # Start core services
+#   docker compose --profile monitoring up -d  # Start with Prometheus/Grafana
+#   docker compose logs -f                # View logs
+#   docker compose down                   # Stop services
+#   docker compose down -v                # Stop and remove volumes
 #
 # =============================================================================
 
@@ -92,7 +92,13 @@ services:
   # Dart REST API Server
   # ===========================================================================
   dart-server:
-    image: minnowvpn/api:${VERSION:-latest}
+    build:
+      context: ../..
+      dockerfile: installer/docker/Dockerfile.dart-server
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    image: minnowvpn/api:latest
     container_name: minnowvpn-api
     secrets:
       - db_password
@@ -130,8 +136,6 @@ services:
       retries: 5
       start_period: 30s
     restart: unless-stopped
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
     deploy:
       resources:
         limits:
@@ -141,7 +145,13 @@ services:
   # Flutter Web Management Console
   # ===========================================================================
   flutter-console:
-    image: minnowvpn/console:${VERSION:-latest}
+    build:
+      context: ../..
+      dockerfile: installer/docker/Dockerfile.flutter-console
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    image: minnowvpn/console:latest
     container_name: minnowvpn-console
     networks:
       - minnowvpn
@@ -154,8 +164,6 @@ services:
       timeout: 5s
       retries: 3
     restart: unless-stopped
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
     deploy:
       resources:
         limits:
@@ -165,17 +173,24 @@ services:
   # Rust WireGuard VPN Daemon
   # ===========================================================================
   vpn-daemon:
-    image: minnowvpn/vpn:${VERSION:-latest}
+    build:
+      context: ../..
+      dockerfile: installer/docker/Dockerfile.vpn-daemon
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    image: minnowvpn/vpn:latest
     container_name: minnowvpn-vpn
-    command: ["minnowvpn", "--daemon", "--http-port", "51821"]
     # Host networking required for TUN device and routing table access
     network_mode: host
     cap_add:
       - NET_ADMIN
       - NET_RAW
       - NET_BIND_SERVICE
-    # NOTE: sysctls are set on the host by setup.sh (can't use in host network mode)
-    # Required: net.ipv4.ip_forward=1, net.ipv4.conf.all.src_valid_mark=1, net.ipv6.conf.all.forwarding=1
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.src_valid_mark=1
+      - net.ipv6.conf.all.forwarding=1
     devices:
       - /dev/net/tun:/dev/net/tun
     volumes:
@@ -188,15 +203,12 @@ services:
       dart-server:
         condition: service_healthy
     healthcheck:
-      # Just check if daemon is responding (returns 401 without auth, but that means it's up)
-      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:51821/api/v1/health || [ $? -eq 22 ]"]
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:51821/api/v1/status"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
     restart: unless-stopped
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
 
   # ===========================================================================
   # Caddy Reverse Proxy (with automatic HTTPS)

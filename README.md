@@ -1,452 +1,307 @@
-# MinnowVPN
+# MinnowVPN Docker Deployment
 
-**Enterprise-grade WireGuard VPN server with web management console.**
-
-MinnowVPN provides a complete VPN solution for organizations, featuring a modern web interface, SSO integration, and automated security hardening.
-
----
+Production-ready Docker deployment for MinnowVPN Server with automatic HTTPS, monitoring, and security hardening.
 
 ## Features
 
-- **Modern WireGuard Protocol** - Fast, secure VPN using the latest cryptographic standards
-- **Web Management Console** - Intuitive admin interface for client management
-- **SSO Integration** - Azure AD, Okta, and Google Workspace authentication
-- **Automatic HTTPS** - Let's Encrypt certificates with zero configuration
-- **Built-in Monitoring** - Optional Prometheus/Grafana dashboards
-- **Brute-Force Protection** - Fail2ban integration with automatic IP blocking
-- **Multi-Architecture** - Runs on x86_64 and ARM64 servers
-- **Automatic Updates** - Watchtower keeps your deployment current
-
----
+- **All-in-one deployment**: PostgreSQL, Redis, API server, web console, VPN daemon
+- **Automatic HTTPS**: Let's Encrypt certificates via Caddy
+- **Security hardened**: Fail2ban brute-force protection, Docker secrets
+- **Auto-updates**: Watchtower for automatic container updates
+- **Monitoring stack**: Optional Prometheus + Grafana
+- **Multi-architecture**: Supports both AMD64 and ARM64
 
 ## Quick Start
 
 ```bash
-# 1. Clone this repository
-git clone https://github.com/YOUR_ORG/minnowvpn.git
-cd minnowvpn
+# Clone the repository
+git clone https://github.com/yourorg/minnowvpn.git
+cd minnowvpn/installer/docker
 
-# 2. Run the installer
-./install.sh
-
-# 3. Access your VPN server
-# Open https://your-domain.com in a browser
+# Run the setup wizard
+./scripts/setup.sh
 ```
 
-The installer will guide you through configuration and start all services automatically.
-
----
+The setup wizard will:
+1. Prompt for your domain, email, and server IP
+2. Generate secure random secrets
+3. Build and start all containers
+4. Wait for services to become healthy
 
 ## Requirements
 
-### Server
-
-- **Operating System**: Ubuntu 22.04+, Debian 12+, or any modern Linux with Docker
-- **CPU**: 1+ cores (2+ recommended for production)
-- **RAM**: 2GB minimum (4GB+ recommended)
-- **Storage**: 10GB minimum
-
-### Network
-
-| Port | Protocol | Purpose |
-|------|----------|---------|
-| 80 | TCP | HTTP (redirects to HTTPS) |
-| 443 | TCP/UDP | HTTPS + HTTP/3 QUIC |
-| 51820 | UDP | WireGuard VPN |
-
-### DNS
-
-A domain name with an A record pointing to your server's public IP address.
-
-### Software
-
-- **Docker** 24.0+ with Compose V2
-- **OpenSSL** (for secret generation)
-
-#### Install Docker (if needed)
-
-```bash
-# Ubuntu/Debian
-curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker $USER
-
-# Log out and back in, then verify
-docker --version
-docker compose version
-```
-
----
-
-## Installation
-
-### Interactive Setup
-
-```bash
-./install.sh
-```
-
-The setup wizard will prompt you for:
-
-1. **Domain name** - Your VPN server's domain (e.g., `vpn.company.com`)
-2. **Email address** - For Let's Encrypt certificate notifications
-3. **Server IP** - Your server's public IP (auto-detected)
-4. **Enable monitoring** - Optional Prometheus/Grafana stack
-
-### Non-Interactive Setup (CI/CD)
-
-```bash
-export DOMAIN=vpn.company.com
-export ACME_EMAIL=admin@company.com
-export VPN_PUBLIC_IP=203.0.113.1
-
-./install.sh --non-interactive
-```
-
----
-
-## Configuration
-
-All configuration is stored in `.env`. The installer creates this file from `.env.example`.
-
-### Required Settings
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DOMAIN` | Your VPN domain | `vpn.company.com` |
-| `ACME_EMAIL` | Let's Encrypt notification email | `admin@company.com` |
-| `VPN_PUBLIC_IP` | Server's public IP address | `203.0.113.1` |
-
-### Optional Settings
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `HTTP_PORT` | `80` | HTTP port (for ACME challenges) |
-| `HTTPS_PORT` | `443` | HTTPS port |
-| `VPN_UDP_PORT` | `51820` | WireGuard UDP port |
-| `GRAFANA_DOMAIN` | `grafana.localhost` | Grafana subdomain (monitoring only) |
-| `TZ` | `UTC` | Timezone for logs |
-| `VERSION` | `latest` | Docker image version to use |
-
-### Secrets
-
-Secrets are auto-generated during setup and stored in `secrets/`:
-
-- `db_password.txt` - PostgreSQL database password
-- `redis_password.txt` - Redis authentication
-- `jwt_secret.txt` - JWT signing key
-- `encryption_key.txt` - AES-256 encryption key
-- `grafana_admin_password.txt` - Grafana admin password (if monitoring enabled)
-
-> **Important**: Never commit the `secrets/` directory to version control.
-
----
+- Docker Engine 20.10+
+- Docker Compose 2.0+
+- A domain name pointing to your server
+- Ports 80, 443 (TCP) and 51820 (UDP) open
 
 ## Architecture
 
 ```
-                    Internet
-                       │
-                       ▼
-              ┌────────────────┐
-              │     Caddy      │ :443 (HTTPS)
-              │ (Reverse Proxy)│ :80  (HTTP→HTTPS)
-              └───────┬────────┘
-                      │
-         ┌────────────┼────────────┐
-         ▼            ▼            ▼
-    ┌─────────┐ ┌──────────┐ ┌──────────┐
-    │   API   │ │  Console │ │  Grafana │
-    │ (Dart)  │ │(Flutter) │ │(optional)│
-    │  :8080  │ │   :80    │ │  :3000   │
-    └────┬────┘ └──────────┘ └────┬─────┘
-         │                        │
-         ▼                        ▼
-    ┌─────────┐              ┌──────────┐
-    │   VPN   │              │Prometheus│
-    │ Daemon  │ :51820/udp   │(optional)│
-    │ (Rust)  │              └──────────┘
-    └────┬────┘
-         │
-    ┌────┴────┐
-    ▼         ▼
-┌────────┐ ┌───────┐
-│Postgres│ │ Redis │
-│  :5432 │ │ :6379 │
-└────────┘ └───────┘
+Internet
+    │
+    ├─── TCP 80/443 ───► Caddy (HTTPS) ───► Dart API Server
+    │                         │
+    │                         └───────────► Flutter Console
+    │
+    └─── UDP 51820 ────► Rust VPN Daemon
 ```
 
 ### Services
 
-| Service | Description |
-|---------|-------------|
-| **postgres** | PostgreSQL 15 database for configuration and audit logs |
-| **redis** | Redis 7 for caching and real-time event streaming |
-| **dart-server** | REST API server for client management |
-| **flutter-console** | Web management interface |
-| **vpn-daemon** | WireGuard VPN server (Rust) |
-| **caddy** | HTTPS reverse proxy with automatic certificates |
-| **watchtower** | Automatic container updates |
-| **fail2ban** | Brute-force protection |
+| Service | Description | Port |
+|---------|-------------|------|
+| `postgres` | PostgreSQL 15 database | 5432 (internal) |
+| `redis` | Redis 7 cache & pub/sub | 6379 (internal) |
+| `dart-server` | REST API server | 8080 (internal) |
+| `flutter-console` | Web management console | 80 (internal) |
+| `vpn-daemon` | WireGuard VPN server | UDP 51820, TCP 51821 |
+| `caddy` | Reverse proxy + HTTPS | 80, 443 |
+| `watchtower` | Auto-updates | - |
+| `fail2ban` | Brute-force protection | - |
 
 ### Monitoring Stack (Optional)
 
-Enable with `--profile monitoring` flag during setup:
+Enable with `--profile monitoring`:
 
-| Service | Description |
-|---------|-------------|
-| **prometheus** | Metrics collection |
-| **grafana** | Dashboards and visualization |
-| **node-exporter** | Host system metrics |
-| **redis-exporter** | Redis metrics |
-| **postgres-exporter** | PostgreSQL metrics |
+| Service | Description | Port |
+|---------|-------------|------|
+| `prometheus` | Metrics collection | 9090 (internal) |
+| `grafana` | Dashboards | 3000 (internal) |
+| `node-exporter` | Host metrics | 9100 (internal) |
+| `redis-exporter` | Redis metrics | 9121 (internal) |
+| `postgres-exporter` | PostgreSQL metrics | 9187 (internal) |
 
----
+## Configuration
 
-## Administration
+### Environment Variables
 
-### Service Management
+Copy `.env.example` to `.env` and customize:
 
 ```bash
-# View running services
-docker compose ps
+# Required
+DOMAIN=vpn.example.com
+ACME_EMAIL=admin@example.com
+VPN_PUBLIC_IP=1.2.3.4
 
-# View logs
-docker compose logs -f              # All services
-docker compose logs -f dart-server  # Specific service
+# Optional
+HTTP_PORT=80
+HTTPS_PORT=443
+VPN_UDP_PORT=51820
+GRAFANA_DOMAIN=grafana.example.com
+TZ=UTC
+```
 
-# Restart a service
-docker compose restart dart-server
+### Secrets
 
-# Stop all services
-docker compose down
+Secrets are stored in `secrets/` directory (auto-generated by setup.sh):
 
-# Start all services
+```
+secrets/
+├── db_password.txt         # PostgreSQL password
+├── redis_password.txt      # Redis password
+├── jwt_secret.txt          # JWT signing key
+├── encryption_key.txt      # AES-256 encryption key
+└── grafana_admin_password.txt  # Grafana admin password
+```
+
+**Never commit secrets to version control!**
+
+## Commands
+
+### Basic Operations
+
+```bash
+# Start services
 docker compose up -d
 
 # Start with monitoring
 docker compose --profile monitoring up -d
-```
 
-### Backup
+# View logs
+docker compose logs -f
+docker compose logs -f dart-server  # Specific service
 
-Create a full backup of all data:
+# Check status
+docker compose ps
 
-```bash
-./scripts/backup.sh
-```
+# Stop services
+docker compose down
 
-Backups include:
-- PostgreSQL database (binary + SQL formats)
-- Redis data
-- Configuration files
-- Docker secrets
-- Let's Encrypt certificates
-
-Backups are stored in `backups/` with automatic cleanup of files older than 7 days.
-
-### Restore
-
-Restore from a backup:
-
-```bash
-# From directory
-./scripts/restore.sh backups/minnowvpn_20240101_120000
-
-# From archive
-./scripts/restore.sh backups/minnowvpn_20240101_120000.tar.gz
-```
-
-### Updates
-
-Watchtower automatically updates containers daily at 4 AM UTC.
-
-Manual update:
-
-```bash
-docker compose pull
+# Rebuild after code changes
+docker compose build --no-cache
 docker compose up -d
 ```
 
-Pin to a specific version in `.env`:
+### Backup & Restore
 
 ```bash
-VERSION=1.2.3
+# Create backup
+./scripts/backup.sh
+
+# Create backup to custom location
+./scripts/backup.sh /path/to/backups
+
+# Restore from backup
+./scripts/restore.sh ./backups/minnowvpn_20240101_120000
+./scripts/restore.sh ./backups/minnowvpn_20240101_120000.tar.gz
 ```
 
----
+### Maintenance
+
+```bash
+# View Fail2ban status
+docker compose logs fail2ban
+
+# Unban an IP
+docker compose exec fail2ban fail2ban-client set minnowvpn-auth unbanip 1.2.3.4
+
+# Force Watchtower update check
+docker compose exec watchtower /watchtower --run-once
+
+# Reload Caddy config
+docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
+```
 
 ## Security
 
-### Automatic Protections
+### Fail2ban Protection
 
-- **HTTPS-only** - All HTTP traffic redirects to HTTPS
-- **HSTS** - Strict Transport Security enabled
-- **Security Headers** - CSP, X-Frame-Options, X-Content-Type-Options
-- **Fail2ban** - Automatic IP blocking after failed login attempts
-- **Rate Limiting** - Enrollment endpoint protected against abuse
-- **Docker Secrets** - Sensitive data never exposed in environment variables
+The following jails are configured:
 
-### Fail2ban Rules
+| Jail | Trigger | Ban Time |
+|------|---------|----------|
+| `minnowvpn-auth` | 5 failed logins in 5 min | 1 hour |
+| `minnowvpn-enrollment` | 10 failed enrollments in 1 min | 30 min |
+| `minnowvpn-api` | 20 API errors in 1 min | 15 min |
 
-| Jail | Trigger | Ban Duration |
-|------|---------|--------------|
-| minnowvpn-auth | 5 failed logins in 5 min | 1 hour |
-| minnowvpn-enrollment | 10 failed attempts in 1 min | 30 minutes |
-| minnowvpn-api | 20 errors in 1 min | 15 minutes |
+### Security Headers
 
-View banned IPs:
+Caddy adds these headers to all responses:
 
-```bash
-docker compose exec fail2ban fail2ban-client status minnowvpn-auth
-```
+- `Strict-Transport-Security` (HSTS)
+- `X-Content-Type-Options`
+- `X-Frame-Options`
+- `Content-Security-Policy`
+- `Permissions-Policy`
 
-Unban an IP:
+### Network Isolation
 
-```bash
-docker compose exec fail2ban fail2ban-client set minnowvpn-auth unbanip 1.2.3.4
-```
-
-### Firewall Configuration
-
-Recommended UFW rules:
-
-```bash
-ufw allow 22/tcp    # SSH
-ufw allow 80/tcp    # HTTP (ACME)
-ufw allow 443/tcp   # HTTPS
-ufw allow 443/udp   # HTTP/3 QUIC
-ufw allow 51820/udp # WireGuard
-ufw enable
-```
-
----
+- Only Caddy is exposed to the internet
+- All internal services communicate via Docker network
+- VPN daemon uses host networking for TUN access
 
 ## Troubleshooting
 
-### Containers not starting
-
-Check Docker logs:
+### Services not starting
 
 ```bash
-docker compose logs -f
-```
+# Check logs
+docker compose logs dart-server
+docker compose logs postgres
 
-Verify all health checks:
-
-```bash
+# Check health status
 docker compose ps
+
+# Restart a specific service
+docker compose restart dart-server
 ```
 
-### HTTPS certificate issues
-
-Ensure your domain's DNS is pointing to the server:
+### Certificate issues
 
 ```bash
-dig +short your-domain.com
-```
-
-Check Caddy logs:
-
-```bash
+# Check Caddy logs
 docker compose logs caddy
+
+# Force certificate renewal
+docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
 ```
 
-### VPN clients can't connect
-
-1. Verify UDP port 51820 is open:
-   ```bash
-   nc -uzv your-server-ip 51820
-   ```
-
-2. Check VPN daemon status:
-   ```bash
-   docker compose logs vpn-daemon
-   ```
-
-3. Verify client configuration matches server settings
-
-### Database connection errors
-
-Check PostgreSQL health:
+### Database connection issues
 
 ```bash
-docker compose exec postgres pg_isready
-```
+# Check PostgreSQL is healthy
+docker compose exec postgres pg_isready -U minnowvpn
 
-View database logs:
-
-```bash
+# Check database logs
 docker compose logs postgres
 ```
 
-### Reset everything
+### VPN connection issues
 
 ```bash
-# Stop all services
-docker compose down
+# Check VPN daemon status
+curl http://localhost:51821/api/v1/status
 
-# Remove all data (DESTRUCTIVE!)
-docker compose down -v
+# Check VPN logs
+docker compose logs vpn-daemon
 
-# Remove secrets
-rm -rf secrets/
-
-# Re-run setup
-./install.sh
+# Verify UDP port is open
+nc -zvu your-server-ip 51820
 ```
 
----
+## Upgrading
 
-## Monitoring
+### Standard Upgrade
 
-If you enabled the monitoring stack:
+Watchtower automatically updates containers daily at 4am UTC.
 
-### Access Grafana
-
-1. Open `https://grafana.your-domain.com`
-2. Login with:
-   - Username: `admin`
-   - Password: (see `secrets/grafana_admin_password.txt`)
-
-### Pre-built Dashboards
-
-The MinnowVPN dashboard shows:
-- CPU and memory usage
-- Network traffic
-- Database connections
-- Redis operations
-- Active VPN sessions
-
-### Prometheus Metrics
-
-Access raw metrics at `http://localhost:9090` (internal only) or via Grafana's Explore feature.
-
----
-
-## Uninstall
+### Manual Upgrade
 
 ```bash
-# Stop and remove all containers
-docker compose down
+# Pull latest images
+docker compose pull
 
-# Remove all data (optional)
-docker compose down -v
+# Rebuild custom images
+docker compose build --no-cache
 
-# Remove the directory
-cd ..
-rm -rf minnowvpn/
+# Restart with new images
+docker compose up -d
 ```
 
----
+### Major Version Upgrade
 
-## Support
+1. Create a backup first
+2. Check the changelog for breaking changes
+3. Update configuration if needed
+4. Run the upgrade
 
-- **Issues**: https://github.com/YOUR_ORG/minnowvpn/issues
-- **Discussions**: https://github.com/YOUR_ORG/minnowvpn/discussions
-- **Documentation**: https://docs.minnowvpn.dev
+```bash
+./scripts/backup.sh
+git pull
+docker compose down
+docker compose build --no-cache
+docker compose up -d
+```
 
----
+## Development
+
+### Local Development
+
+```bash
+# Use docker-compose.override.yml for local settings
+cat > docker-compose.override.yml << EOF
+version: "3.9"
+services:
+  caddy:
+    ports:
+      - "8080:80"
+      - "8443:443"
+EOF
+
+docker compose up -d
+```
+
+### Building Single Architecture
+
+```bash
+# AMD64 only
+docker compose build --build-arg TARGETPLATFORM=linux/amd64
+
+# ARM64 only
+docker compose build --build-arg TARGETPLATFORM=linux/arm64
+```
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+See the main project LICENSE file.

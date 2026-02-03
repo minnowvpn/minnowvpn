@@ -1,0 +1,79 @@
+# =============================================================================
+# MinnowVPN Rust WireGuard VPN Daemon
+# Multi-architecture build (amd64 + arm64)
+# =============================================================================
+# syntax=docker/dockerfile:1
+
+# -----------------------------------------------------------------------------
+# Stage 1: Build the Rust daemon
+# -----------------------------------------------------------------------------
+# Use TARGETPLATFORM instead of BUILDPLATFORM to build natively for target arch
+# This uses QEMU emulation on cross-arch builds but avoids linker issues
+FROM rust:1.85-bookworm AS build
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    pkg-config \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy Cargo files first for better layer caching
+COPY minnowvpn-service/Cargo.toml minnowvpn-service/Cargo.lock ./
+
+# Create a dummy main.rs to build dependencies
+RUN mkdir src && \
+    echo "fn main() {}" > src/main.rs && \
+    cargo build --release || true && \
+    rm -rf src
+
+# Copy actual source code
+COPY minnowvpn-service/src/ ./src/
+
+# Build the actual binary
+RUN cargo build --release && \
+    cp target/release/minnowvpn /minnowvpn
+
+# -----------------------------------------------------------------------------
+# Stage 2: Create minimal runtime image
+# -----------------------------------------------------------------------------
+FROM debian:bookworm-slim
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    libssl3 \
+    iproute2 \
+    iptables \
+    curl \
+    procps \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Create directories for state and runtime
+RUN mkdir -p /var/lib/minnowvpn /var/run/minnowvpn \
+    && chmod 755 /var/lib/minnowvpn /var/run/minnowvpn
+
+# Copy compiled binary
+COPY --from=build /minnowvpn /usr/local/bin/minnowvpn
+
+# Make it executable
+RUN chmod +x /usr/local/bin/minnowvpn
+
+# Expose ports
+# UDP 51820 - WireGuard protocol
+# TCP 51821 - REST API for server mode
+EXPOSE 51820/udp 51821/tcp
+
+# Health check (REST API)
+HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -sf http://127.0.0.1:51821/api/v1/status || exit 1
+
+# Labels for Watchtower
+LABEL com.centurylinklabs.watchtower.enable="true"
+
+# Run daemon in server mode
+# --daemon: Run as HTTP REST API service
+# --http-port 51821: HTTP API port (VPN uses 51820)
+CMD ["minnowvpn", "--daemon", "--http-port", "51821"]
