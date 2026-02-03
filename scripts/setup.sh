@@ -8,7 +8,7 @@
 # 2. Prompts for configuration values
 # 3. Generates secure random secrets
 # 4. Creates .env file from template
-# 5. Builds and starts all containers
+# 5. Pulls and starts all containers
 #
 # Usage:
 #   ./scripts/setup.sh                    # Interactive setup

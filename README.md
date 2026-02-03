@@ -25,7 +25,7 @@ cd minnowvpn
 The setup wizard will:
 1. Prompt for your domain, email, and server IP
 2. Generate secure random secrets
-3. Build and start all containers
+3. Pull and start all containers
 4. Wait for services to become healthy
 
 ## Requirements
