@@ -199,8 +199,10 @@ generate_secrets() {
     echo "$(generate_secret 32)" > "$DOCKER_DIR/secrets/encryption_key.txt"
     echo "$(generate_secret 32)" > "$DOCKER_DIR/secrets/grafana_admin_password.txt"
 
-    # Set restrictive permissions
-    chmod 600 "$DOCKER_DIR/secrets/"*.txt
+    # Set permissions readable by container users
+    # Note: Docker file-based secrets inherit host file permissions.
+    # Containers run as non-root users and need read access.
+    chmod 644 "$DOCKER_DIR/secrets/"*.txt
 
     log_success "Secrets generated in $DOCKER_DIR/secrets/"
 }
