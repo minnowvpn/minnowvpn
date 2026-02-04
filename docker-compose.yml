@@ -236,6 +236,8 @@ services:
     image: containrrr/watchtower:latest
     container_name: minnowvpn-watchtower
     environment:
+      # Docker API version (1.44+ required for Docker 29.x)
+      DOCKER_API_VERSION: "1.44"
       # Cron schedule: daily at 4am UTC
       WATCHTOWER_SCHEDULE: ${WATCHTOWER_SCHEDULE:-0 0 4 * * *}
       WATCHTOWER_CLEANUP: "true"
