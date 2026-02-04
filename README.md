@@ -9,9 +9,17 @@
 
 > **Note:** This is a reference repository. Bug reports are welcome, but pull requests will not be accepted.
 
-**A self-hosted WireGuard VPN server with a modern web management console.**
+**Small. Fast. Lean.** A self-hosted WireGuard VPN with modern web management.
 
-MinnowVPN makes it easy to deploy and manage a WireGuard VPN server. It provides a beautiful web-based admin console for managing clients, monitoring connections, and configuring SSO authentication—all without touching the command line after initial setup.
+## Why MinnowVPN?
+
+| | |
+|---|---|
+| 🐟 **Small** | Lightweight Rust VPN daemon. Minimal resource footprint. Runs on a Raspberry Pi. |
+| ⚡ **Fast** | Native WireGuard performance. Sub-second connections. Efficient encryption. |
+| 🎯 **Lean** | No bloat. Deploy in minutes with Docker. Simple, focused, easy to maintain. |
+
+Like its namesake, MinnowVPN is deliberately small and nimble. It provides a beautiful web console for managing clients, monitoring connections, and configuring SSO—all without touching the command line after initial setup.
 
 ## Who is it for?
 
