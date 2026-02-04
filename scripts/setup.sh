@@ -87,6 +87,48 @@ check_prerequisites() {
     echo ""
 }
 
+# Configure kernel parameters for VPN
+configure_sysctls() {
+    log_info "Configuring kernel parameters for VPN..."
+
+    # Required sysctls for WireGuard VPN
+    local sysctls=(
+        "net.ipv4.ip_forward=1"
+        "net.ipv4.conf.all.src_valid_mark=1"
+        "net.ipv6.conf.all.forwarding=1"
+    )
+
+    local needs_sudo=false
+    for sysctl in "${sysctls[@]}"; do
+        local key="${sysctl%%=*}"
+        local expected="${sysctl##*=}"
+        local current=$(sysctl -n "$key" 2>/dev/null || echo "")
+
+        if [ "$current" != "$expected" ]; then
+            needs_sudo=true
+            break
+        fi
+    done
+
+    if [ "$needs_sudo" = true ]; then
+        log_info "Setting kernel parameters (requires sudo)..."
+        for sysctl in "${sysctls[@]}"; do
+            sudo sysctl -w "$sysctl" > /dev/null
+        done
+
+        # Make persistent across reboots
+        local sysctl_conf="/etc/sysctl.d/99-minnowvpn.conf"
+        log_info "Making settings persistent in $sysctl_conf..."
+        printf '%s\n' "${sysctls[@]}" | sudo tee "$sysctl_conf" > /dev/null
+
+        log_success "Kernel parameters configured"
+    else
+        log_success "Kernel parameters already configured"
+    fi
+
+    echo ""
+}
+
 # Generate random secret
 generate_secret() {
     openssl rand -base64 "$1" | tr -d '\n'
@@ -357,6 +399,7 @@ main() {
 
     generate_secrets
     create_env_file
+    configure_sysctls
     start_containers
     wait_for_health
     print_summary
