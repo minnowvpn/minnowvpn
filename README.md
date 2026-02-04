@@ -7,6 +7,8 @@
 
 > ⚠️ **Alpha Software**: MinnowVPN is under active development and not yet ready for production use. APIs and features may change without notice. Use at your own risk.
 
+> **Note:** This is a reference repository. Bug reports are welcome, but pull requests will not be accepted.
+
 **A self-hosted WireGuard VPN server with a modern web management console.**
 
 MinnowVPN makes it easy to deploy and manage a WireGuard VPN server. It provides a beautiful web-based admin console for managing clients, monitoring connections, and configuring SSO authentication—all without touching the command line after initial setup.
@@ -544,15 +546,14 @@ ws.onmessage = (event) => {
 };
 ```
 
-## Contributing
+## Reporting Issues
 
-MinnowVPN is open source! Contributions are welcome.
+Found a bug? Please open an issue on GitHub with:
+- Steps to reproduce
+- Expected vs actual behavior
+- Platform and version information
 
-- **Bug reports**: Open an issue on GitHub
-- **Feature requests**: Open an issue with the "enhancement" label
-- **Pull requests**: Fork the repo and submit a PR
-
-For development, see the [main source repository](https://github.com/minnowvpn/minnowvpn-src).
+For issues with the core VPN daemon, use the [minnowvpn-service repository](https://github.com/minnowvpn/minnowvpn-service/issues).
 
 ## License
 

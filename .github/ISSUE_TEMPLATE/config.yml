@@ -3,6 +3,6 @@ contact_links:
   - name: Documentation
     url: https://github.com/minnowvpn/minnowvpn#readme
     about: Check the README for setup and troubleshooting guides
-  - name: Discussions
-    url: https://github.com/minnowvpn/minnowvpn/discussions
-    about: Ask questions and get help from the community
+  - name: Not Accepting Contributions
+    url: https://github.com/minnowvpn/minnowvpn#readme
+    about: This is a reference repository. Pull requests will not be accepted.
