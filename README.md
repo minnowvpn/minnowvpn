@@ -1,7 +1,11 @@
 # MinnowVPN
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-Alpha-orange.svg)]()
+[![Under Development](https://img.shields.io/badge/Under%20Development-⚠️-yellow.svg)]()
 [![Docker Pulls](https://img.shields.io/docker/pulls/minnowvpn/api)](https://hub.docker.com/r/minnowvpn/api)
+
+> ⚠️ **Alpha Software**: MinnowVPN is under active development and not yet ready for production use. APIs and features may change without notice. Use at your own risk.
 
 **A self-hosted WireGuard VPN server with a modern web management console.**
 
