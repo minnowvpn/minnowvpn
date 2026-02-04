@@ -183,7 +183,7 @@ services:
       dart-server:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://127.0.0.1:51821/api/v1/status"]
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:51821/api/v1/health"]
       interval: 10s
       timeout: 5s
       retries: 5
