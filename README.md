@@ -30,7 +30,10 @@ Like its namesake, MinnowVPN is deliberately small and nimble. It provides a bea
 
 ## Features
 
-### Core VPN
+### Core VPN Service
+
+The VPN daemon is **open source** — a lightweight Rust implementation of the WireGuard protocol. View the source, report bugs, or learn how it works at [minnowvpn-service](https://github.com/minnowvpn/minnowvpn-service).
+
 - **WireGuard protocol** - Fast, modern, and cryptographically secure
 - **Multi-architecture support** - Runs on AMD64 and ARM64 (including Raspberry Pi)
 - **Automatic key management** - No manual key generation required
