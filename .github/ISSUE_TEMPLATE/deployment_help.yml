@@ -1,0 +1,75 @@
+name: Deployment Help
+description: Get help with setup or configuration
+title: "[Help]: "
+labels: ["question", "help wanted"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Need help getting MinnowVPN running? Fill out this form and we'll try to help!
+
+        **Note:** For general questions, consider using [Discussions](https://github.com/minnowvpn/minnowvpn/discussions) instead.
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: What are you trying to do?
+      description: Describe your goal
+      placeholder: I'm trying to set up MinnowVPN with...
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you tried?
+      description: What steps have you already taken?
+      placeholder: |
+        1. I ran setup.sh
+        2. I configured...
+    validations:
+      required: true
+
+  - type: textarea
+    id: error
+    attributes:
+      label: Error or Issue
+      description: What's not working? Include any error messages.
+      render: shell
+    validations:
+      required: true
+
+  - type: input
+    id: host-os
+    attributes:
+      label: Host OS & Docker Version
+      placeholder: "Ubuntu 22.04, Docker 24.0.7"
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Relevant Configuration
+      description: "Share relevant .env or config settings (REMOVE SECRETS!)"
+      render: shell
+      placeholder: |
+        DOMAIN=vpn.example.com
+        # Do NOT include passwords!
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-flight Checklist
+      description: Please confirm you've checked these common issues
+      options:
+        - label: I've read the [README troubleshooting section](https://github.com/minnowvpn/minnowvpn#troubleshooting)
+          required: true
+        - label: Ports 80, 443 (TCP) and 51820 (UDP) are open in my firewall
+          required: false
+        - label: My domain DNS is pointing to this server
+          required: false
+        - label: Docker and Docker Compose are installed and working
+          required: false

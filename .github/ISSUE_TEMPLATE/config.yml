@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/minnowvpn/minnowvpn#readme
+    about: Check the README for setup and troubleshooting guides
+  - name: Discussions
+    url: https://github.com/minnowvpn/minnowvpn/discussions
+    about: Ask questions and get help from the community

@@ -1,0 +1,123 @@
+name: Bug Report
+description: Report a deployment or service issue
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the sections below.
+
+  - type: dropdown
+    id: service
+    attributes:
+      label: Affected Service
+      description: Which service is having issues?
+      options:
+        - Setup script (setup.sh)
+        - Web console (flutter-console)
+        - API server (dart-server)
+        - VPN daemon (vpn-daemon)
+        - Database (postgres)
+        - Cache (redis)
+        - Reverse proxy (caddy)
+        - Monitoring (prometheus/grafana)
+        - Multiple services
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: docker-version
+    attributes:
+      label: Docker Version
+      description: Output of `docker --version`
+      placeholder: "Docker version 24.0.7, build afdd53b"
+    validations:
+      required: true
+
+  - type: input
+    id: compose-version
+    attributes:
+      label: Docker Compose Version
+      description: Output of `docker compose version`
+      placeholder: "Docker Compose version v2.23.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: host-os
+    attributes:
+      label: Host Operating System
+      options:
+        - Ubuntu 22.04
+        - Ubuntu 24.04
+        - Debian 11
+        - Debian 12
+        - RHEL/CentOS 8
+        - RHEL/Rocky 9
+        - macOS (Docker Desktop)
+        - Windows (Docker Desktop)
+        - Other Linux
+    validations:
+      required: true
+
+  - type: dropdown
+    id: architecture
+    attributes:
+      label: Architecture
+      options:
+        - x86_64 / amd64
+        - arm64 / aarch64
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: Describe what happened
+      placeholder: Describe the bug in detail...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce the issue?
+      placeholder: |
+        1. Run `./scripts/setup.sh`
+        2. Enter configuration...
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs
+      description: Paste any relevant logs (use `docker compose logs <service>`)
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Configuration
+      description: "Relevant .env settings (REMOVE ANY SECRETS!)"
+      render: shell
+      placeholder: |
+        DOMAIN=vpn.example.com
+        # Do NOT include passwords or secrets!
+    validations:
+      required: false
