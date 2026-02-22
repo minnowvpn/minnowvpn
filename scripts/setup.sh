@@ -269,7 +269,7 @@ HTTP_PORT=80
 HTTPS_PORT=443
 VPN_UDP_PORT=51820
 
-# Monitoring
+# Monitoring (only change GRAFANA_DOMAIN if running with --profile monitoring)
 GRAFANA_DOMAIN=$GRAFANA_DOMAIN
 
 # Watchtower (auto-updates daily at 4am UTC)
@@ -351,7 +351,7 @@ print_summary() {
         echo -e "${BLUE}Grafana dashboard:${NC}"
         echo -e "  ${GREEN}https://$GRAFANA_DOMAIN${NC}"
         echo -e "  Username: admin"
-        echo -e "  Password: $(cat "$DOCKER_DIR/secrets/grafana_admin_password.txt")"
+        echo -e "  Password: (see $DOCKER_DIR/secrets/grafana_admin_password.txt)"
         echo ""
     fi
 
