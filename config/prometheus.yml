@@ -8,6 +8,7 @@
 # - Redis Exporter (Redis metrics)
 # - Postgres Exporter (PostgreSQL metrics)
 # - Caddy (web server metrics)
+# - MinnowVPN API Server (application metrics)
 #
 # =============================================================================
 
@@ -98,6 +99,19 @@ scrape_configs:
       - source_labels: [__address__]
         target_label: instance
         replacement: 'minnowvpn-caddy'
+
+  # ---------------------------------------------------------------------------
+  # MinnowVPN API Server - Application metrics
+  # ---------------------------------------------------------------------------
+  - job_name: 'minnowvpn-api'
+    static_configs:
+      - targets: ['dart-server:8080']
+    metrics_path: /metrics
+    scheme: http
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'minnowvpn-api'
 
   # ---------------------------------------------------------------------------
   # Docker containers (if Docker daemon exposes metrics)
