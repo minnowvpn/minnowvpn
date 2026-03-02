@@ -115,8 +115,14 @@ services:
       ENCRYPTION_KEY_FILE: /run/secrets/encryption_key
       SERVER_DOMAIN: ${DOMAIN:-localhost}
       CORS_ORIGINS: https://${DOMAIN:-localhost}
+      # VPN daemon connection (daemon runs on host network, reached via host.docker.internal)
+      VPN_DAEMON_HOST: host.docker.internal
+      VPN_DAEMON_TOKEN_PATH: /var/run/minnowvpn/auth-token
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - server_logs:/app/logs
+      - vpn_run:/var/run/minnowvpn:ro
     networks:
       - minnowvpn
     depends_on:
