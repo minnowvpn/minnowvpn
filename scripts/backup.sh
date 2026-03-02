@@ -62,7 +62,7 @@ backup_postgres() {
     cd "$DOCKER_DIR"
 
     # Check if container is running
-    if ! $COMPOSE_CMD ps postgres | grep -q "running"; then
+    if ! $COMPOSE_CMD ps postgres | grep -qE "running|Up"; then
         log_error "PostgreSQL container is not running!"
         return 1
     fi
@@ -83,7 +83,7 @@ backup_redis() {
     cd "$DOCKER_DIR"
 
     # Check if container is running
-    if ! $COMPOSE_CMD ps redis | grep -q "running"; then
+    if ! $COMPOSE_CMD ps redis | grep -qE "running|Up"; then
         log_warning "Redis container is not running, skipping..."
         return 0
     fi
@@ -138,7 +138,7 @@ backup_caddy() {
     cd "$DOCKER_DIR"
 
     # Check if container is running
-    if ! $COMPOSE_CMD ps caddy | grep -q "running"; then
+    if ! $COMPOSE_CMD ps caddy | grep -qE "running|Up"; then
         log_warning "Caddy container is not running, skipping certificates..."
         return 0
     fi
