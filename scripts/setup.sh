@@ -267,7 +267,6 @@ VPN_PUBLIC_IP=$VPN_PUBLIC_IP
 # Ports
 HTTP_PORT=80
 HTTPS_PORT=443
-VPN_UDP_PORT=51820
 
 # Monitoring (only change GRAFANA_DOMAIN if running with --profile monitoring)
 GRAFANA_DOMAIN=$GRAFANA_DOMAIN
@@ -311,13 +310,13 @@ wait_for_health() {
     local attempt=0
 
     while [ $attempt -lt $max_attempts ]; do
-        if curl -sf "https://$DOMAIN/health" > /dev/null 2>&1; then
+        if curl -sf "https://$DOMAIN/api/v1/health" > /dev/null 2>&1; then
             log_success "All services are healthy!"
             return 0
         fi
 
         # Also try HTTP in case HTTPS isn't ready yet
-        if curl -sf "http://$DOMAIN/health" > /dev/null 2>&1; then
+        if curl -sf "http://$DOMAIN/api/v1/health" > /dev/null 2>&1; then
             log_success "Services responding (waiting for HTTPS certificate)..."
         fi
 

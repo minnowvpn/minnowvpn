@@ -89,7 +89,7 @@ backup_redis() {
     fi
 
     # Trigger BGSAVE
-    $COMPOSE_CMD exec -T redis redis-cli BGSAVE > /dev/null 2>&1 || true
+    $COMPOSE_CMD exec -T redis sh -c 'redis-cli -a "$(cat /run/secrets/redis_password)" --no-auth-warning BGSAVE' > /dev/null 2>&1 || true
     sleep 2
 
     # Copy RDB file

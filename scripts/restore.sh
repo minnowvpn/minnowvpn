@@ -117,7 +117,7 @@ restore_config() {
     if [ -d "$BACKUP_DIR/secrets" ]; then
         rm -rf "$DOCKER_DIR/secrets"
         cp -r "$BACKUP_DIR/secrets" "$DOCKER_DIR/"
-        chmod 600 "$DOCKER_DIR/secrets/"*.txt
+        chmod 644 "$DOCKER_DIR/secrets/"*.txt
         log_success "Restored secrets/"
     fi
 
