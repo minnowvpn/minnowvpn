@@ -258,9 +258,9 @@ Copy `.env.example` to `.env` and customize:
 # Required
 DOMAIN=vpn.example.com
 ACME_EMAIL=admin@example.com
-VPN_PUBLIC_IP=1.2.3.4
 
 # Optional
+VPN_PUBLIC_IP=1.2.3.4              # Informational (for setup reference)
 HTTP_PORT=80
 HTTPS_PORT=443
 GRAFANA_DOMAIN=grafana.example.com
@@ -322,8 +322,8 @@ docker compose ps
 # API health endpoint
 curl https://your-domain.com/api/v1/health
 
-# VPN daemon status
-curl http://localhost:51821/api/v1/status
+# VPN daemon health
+curl http://localhost:51821/api/v1/health
 ```
 
 ### Resource Requirements
@@ -493,8 +493,8 @@ docker compose exec postgres psql -U minnowvpn -d minnowvpn
 ### VPN Connection Issues
 
 ```bash
-# Check VPN daemon status
-curl http://localhost:51821/api/v1/status
+# Check VPN daemon health
+curl http://localhost:51821/api/v1/health
 
 # Check VPN logs
 docker compose logs vpn-daemon
